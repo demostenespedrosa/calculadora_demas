@@ -98,10 +98,11 @@ export default function App() {
       details = { mktCommission: Math.min(price * mkt.commission, 100), fixedFee: mkt.fixedFee, shipping: 0 };
     } 
     else if (selectedMkt === 'mercadolivre') {
+      const mlMkt = MARKETPLACES.mercadolivre;
       price = (net + mkt.fixedFee) / (1 - mkt.commission);
-      if (price >= mkt.freeShippingThreshold) {
-        price = (net + mkt.estimatedShipping) / (1 - mkt.commission);
-        details = { mktCommission: price * mkt.commission, fixedFee: 0, shipping: mkt.estimatedShipping };
+      if (price >= mlMkt.freeShippingThreshold) {
+        price = (net + mlMkt.estimatedShipping) / (1 - mkt.commission);
+        details = { mktCommission: price * mkt.commission, fixedFee: 0, shipping: mlMkt.estimatedShipping };
       } else {
         details = { mktCommission: price * mkt.commission, fixedFee: mkt.fixedFee, shipping: 0 };
       }
@@ -204,12 +205,12 @@ export default function App() {
         {step === 'calc' && (
           <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl border border-slate-100 animate-fadeIn">
             <div className="flex items-center gap-4 mb-10">
-              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg text-white ${MARKETPLACES[selectedMkt].color}`}>
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg text-white ${selectedMkt ? MARKETPLACES[selectedMkt].color : ''}`}>
                 <IconCalc />
               </div>
               <div>
                 <h2 className="font-black text-2xl tracking-tighter">Meta no Bolso</h2>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{MARKETPLACES[selectedMkt].name}</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{selectedMkt ? MARKETPLACES[selectedMkt].name : ''}</p>
               </div>
             </div>
 
@@ -240,7 +241,7 @@ export default function App() {
         )}
 
         {/* STEP: RESULT */}
-        {step === 'result' && result && (
+        {step === 'result' && result && selectedMkt && (
           <div className="animate-zoomIn">
             <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-100">
               <div className={`${MARKETPLACES[selectedMkt].color} p-12 text-center text-white`}>
@@ -265,7 +266,7 @@ export default function App() {
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm font-medium text-slate-600 bg-slate-50 p-3 rounded-xl">
-                      <span>Comissão {MARKETPLACES[selectedMkt].name}</span>
+                      <span>Comissão {selectedMkt ? MARKETPLACES[selectedMkt].name : ''}</span>
                       <span className="text-red-500 font-bold">- R$ {result.mktCommission.toFixed(2)}</span>
                     </div>
                     {result.fixedFee > 0 && (
