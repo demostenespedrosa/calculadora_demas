@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { supabase } from './lib/supabase';
 
 // Ícones em SVG para evitar erros de biblioteca externa
@@ -36,16 +36,26 @@ const MARKETPLACES = {
     description: 'A gigante da moda atual.',
     rules: "Foco total em vestuário e fotos padrão revista."
   }
-};
+} as const;
+
+type MarketplaceKey = keyof typeof MARKETPLACES;
+
+interface CalculationResult {
+  finalPrice: number;
+  mktCommission: number;
+  fixedFee: number;
+  shipping: number;
+  net: number;
+}
 
 export default function App() {
   const [step, setStep] = useState('select'); 
-  const [selectedMkt, setSelectedMkt] = useState(null);
+  const [selectedMkt, setSelectedMkt] = useState<MarketplaceKey | null>(null);
   const [targetValue, setTargetValue] = useState('');
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState<CalculationResult | null>(null);
   const [lead, setLead] = useState({ name: '', whatsapp: '', type: 'fabricante' });
 
-  const handleLeadSubmit = async (e) => {
+  const handleLeadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
@@ -76,11 +86,11 @@ export default function App() {
 
   const calculatePrice = () => {
     const net = parseFloat(targetValue);
-    if (isNaN(net) || net <= 0) return;
+    if (isNaN(net) || net <= 0 || !selectedMkt) return;
 
     const mkt = MARKETPLACES[selectedMkt];
     let price = 0;
-    let details = {};
+    let details: Omit<CalculationResult, 'finalPrice' | 'net'> = { mktCommission: 0, fixedFee: 0, shipping: 0 };
 
     if (selectedMkt === 'shopee') {
       price = (net + mkt.fixedFee) / (1 - mkt.commission);
@@ -137,8 +147,8 @@ export default function App() {
               {Object.entries(MARKETPLACES).map(([key, mkt]) => (
                 <button
                   key={key}
-                  onClick={() => { setSelectedMkt(key); setStep('lead'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                  className={`${mkt.color} ${mkt.textColor || 'text-white'} p-6 rounded-3xl shadow-lg hover:-translate-y-0.5 transition-all flex items-center justify-between group`}
+                  onClick={() => { setSelectedMkt(key as MarketplaceKey); setStep('lead'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  className={`${mkt.color} ${'textColor' in mkt ? mkt.textColor : 'text-white'} p-6 rounded-3xl shadow-lg hover:-translate-y-0.5 transition-all flex items-center justify-between group`}
                 >
                   <div className="text-left">
                     <span className="text-2xl font-black block leading-none mb-1">{mkt.name}</span>
@@ -218,7 +228,7 @@ export default function App() {
                 </p>
               </div>
               
-              <button onClick={calculatePrice} disabled={!targetValue || targetValue <= 0}
+              <button onClick={calculatePrice} disabled={!targetValue || parseFloat(targetValue) <= 0}
                 className="w-full py-6 bg-slate-900 text-white rounded-3xl font-black text-lg shadow-2xl hover:bg-indigo-600 disabled:opacity-20 transition-all">
                 GERAR PREÇO FINAL
               </button>
